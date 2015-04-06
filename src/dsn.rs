@@ -46,6 +46,14 @@ impl DSN {
     pub fn endpoint(&self) -> &str {
         &self.endpoint
     }
+
+    pub fn public_key(&self) -> &str {
+        &self.public_key
+    }
+
+    pub fn private_key(&self) -> &str {
+        &self.secret_key
+    }
 }
 
 impl ToString for DSN {

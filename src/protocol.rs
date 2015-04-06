@@ -3,6 +3,8 @@ use rustc_serialize::{Encodable, Encoder, json};
 use std::convert::From;
 use uuid::Uuid;
 use time::{now_utc,Tm};
+use super::dsn::DSN;
+use super::CLIENT_STRING;
 
 enum Level {
     Error
@@ -38,6 +40,15 @@ impl Event {
             timestamp: now_utc(),
             level: Level::Error }
     }
+}
+
+fn get_header(dsn: &DSN) -> String {
+    format!(
+        "Sentry sentry_version=5, sentry_timestamp={}, sentry_key={}, sentry_client={}, sentry_secret={}",
+        now_utc().to_timespec().sec,
+        dsn.public_key(),
+        CLIENT_STRING,
+        dsn.private_key())
 }
 
 #[test]
