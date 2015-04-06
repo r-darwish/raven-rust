@@ -1,5 +1,12 @@
 extern crate regex;
+extern crate time;
+extern crate uuid;
+extern crate rustc_serialize;
 
-pub mod dsn;
-pub mod client;
-pub mod error;
+mod dsn;
+mod client;
+mod error;
+mod protocol;
+
+pub use client::Client;
+pub use error::{RavenResult, RavenError};

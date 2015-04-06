@@ -5,3 +5,6 @@ authors = ["Roey Darwish Dror <roeyd@infinidat.com>"]
 
 [dependencies]
 regex = "*"
+time = "*"
+uuid = "*"
+rustc-serialize = "*"
