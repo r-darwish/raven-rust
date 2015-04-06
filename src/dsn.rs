@@ -13,7 +13,11 @@ pub struct DSN {
 }
 
 impl DSN {
-    pub fn from_string(url: &str) -> RavenResult<DSN> {
+    pub fn from_string(url: &str) -> RavenResult<Option<DSN>> {
+        if url.is_empty() {
+            return Ok(None);
+        }
+
         let regex = Regex::new(r"^(?P<protocol>.*?)://(?P<public_key>.*?):(?P<secret_key>.*?)@(?P<host>.*?)/(?P<path>.*/)(?P<project_id>.*)$").unwrap();
         let captures = match regex.captures(url) {
             None => return Err(RavenError::InvalidDSN),
@@ -29,7 +33,7 @@ impl DSN {
             project_id: From::from(captures.name("project_id").unwrap()),
         };
 
-        Ok(dsn)
+        Ok(Some(dsn))
     }
 }
 
@@ -40,9 +44,14 @@ impl ToString for DSN {
 }
 
 #[test]
+fn empty_dsn() {
+    assert_eq!(None, DSN::from_string("").unwrap());
+}
+
+#[test]
 fn valid_dsn() {
     let s = "https://public:secret@example.com/sentry/long/path/project-id";
-    assert_eq!(s, DSN::from_string(s).unwrap().to_string());
+    assert_eq!(s, DSN::from_string(s).unwrap().unwrap().to_string());
 }
 
 #[test]

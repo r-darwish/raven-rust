@@ -2,11 +2,11 @@ use super::dsn::DSN;
 use super::error::RavenResult;
 
 pub struct Client {
-    dsn: DSN
+    dsn: Option<DSN>
 }
 
 impl Client {
-    pub fn new(dsn: DSN) -> Client {
+    pub fn new(dsn: Option<DSN>) -> Client {
         Client {dsn: dsn}
     }
 
