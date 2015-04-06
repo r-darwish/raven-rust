@@ -9,7 +9,8 @@ pub struct DSN {
     secret_key: String,
     host: String,
     path: String,
-    project_id: String
+    project_id: String,
+    endpoint: String
 }
 
 impl DSN {
@@ -24,16 +25,26 @@ impl DSN {
             Some(cap) => cap
         };
 
+        let protocol = From::from(captures.name("protocol").unwrap());
+        let host = From::from(captures.name("host").unwrap());
+        let path = From::from(captures.name("path").unwrap());
+        let project_id = From::from(captures.name("project_id").unwrap());
+        let endpoint = format!("{}://{}/{}api/{}/store/", protocol, host, path, project_id);
         let dsn = DSN {
-            protocol: From::from(captures.name("protocol").unwrap()),
+            protocol: protocol,
             public_key: From::from(captures.name("public_key").unwrap()),
             secret_key: From::from(captures.name("secret_key").unwrap()),
-            host: From::from(captures.name("host").unwrap()),
-            path: From::from(captures.name("path").unwrap()),
-            project_id: From::from(captures.name("project_id").unwrap()),
+            host: host,
+            path: path,
+            project_id: project_id,
+            endpoint: endpoint,
         };
 
         Ok(Some(dsn))
+    }
+
+    pub fn endpoint(&self) -> &str {
+        &self.endpoint
     }
 }
 
@@ -51,7 +62,9 @@ fn empty_dsn() {
 #[test]
 fn valid_dsn() {
     let s = "https://public:secret@example.com/sentry/long/path/project-id";
-    assert_eq!(s, DSN::from_string(s).unwrap().unwrap().to_string());
+    let dsn = DSN::from_string(s).unwrap().unwrap();
+    assert_eq!(s, dsn.to_string());
+    assert_eq!("https://example.com/sentry/long/path/api/project-id/store/", dsn.endpoint())
 }
 
 #[test]
