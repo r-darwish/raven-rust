@@ -37,7 +37,7 @@ impl Client {
         Ok(Client::new(dsn))
     }
 
-    pub fn report(&self, message: &str) -> RavenResult<()> {
+    pub fn capture_message(&self, message: &str) -> RavenResult<()> {
         let mut client = hyper::Client::new();
         let dsn = match self.dsn {
             None => return Ok(()),
@@ -57,7 +57,7 @@ impl Client {
     }
 
     pub fn capture_error<F: Error>(&self, err: &F) -> RavenResult<()> {
-        self.report(&chained_description(err))
+        self.capture_message(&chained_description(err))
     }
 }
 
