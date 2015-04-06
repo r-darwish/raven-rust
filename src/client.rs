@@ -1,14 +1,30 @@
 use std::error::Error;
+use std::fmt::{Formatter, Result};
 use super::dsn::DSN;
 use super::error::{RavenResult, RavenError};
 use super::protocol::{get_sentry_header, Event};
 use rustc_serialize::json;
-use std::convert::Into;
 use hyper;
 use hyper::status::StatusCode;
 
 pub struct Client {
     dsn: Option<DSN>
+}
+
+#[derive(Clone, Debug)]
+struct SentryHeader {
+    content: String,
+}
+
+impl hyper::header::Header for SentryHeader {
+    fn header_name() -> &'static str { "X-Sentry-Auth" }
+    fn parse_header(_: &[Vec<u8>]) -> Option<Self> { None }
+}
+
+impl hyper::header::HeaderFormat for SentryHeader {
+    fn fmt_header(&self, fmt: &mut Formatter) -> Result {
+        fmt.write_str(&self.content)
+    }
 }
 
 impl Client {
@@ -28,13 +44,11 @@ impl Client {
             Some(ref dsn) => dsn
         };
 
-        let header_content = get_sentry_header(dsn);
         let event = try!(json::encode(&Event::new(message)));
-        let event_slice: &str = &event;
-        let mut headers = hyper::header::Headers::new();
-        headers.set_raw("X-Sentry-Auth", vec![Into::into(header_content)]);
-
-        let response = try!(client.post(dsn.endpoint()).headers(headers).body(event_slice).send());
+        let response = try!(client.post(dsn.endpoint())
+            .header(SentryHeader { content: get_sentry_header(dsn) })
+            .body(&event as &str)
+            .send());
         if response.status != StatusCode::Ok {
             return Err(RavenError::SentryError(response.status));
         }
