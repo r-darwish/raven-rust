@@ -19,7 +19,7 @@ impl DSN {
             return Ok(None);
         }
 
-        let regex = Regex::new(r"^(?P<protocol>.*?)://(?P<public_key>.*?):(?P<secret_key>.*?)@(?P<host>.*?)/(?P<path>.*/)(?P<project_id>.*)$").unwrap();
+        let regex = Regex::new(r"^(?P<protocol>.*?)://(?P<public_key>.*?):(?P<secret_key>.*?)@(?P<host>.*?)/(?P<path>.*/)?(?P<project_id>.*)$").unwrap();
         let captures = match regex.captures(url) {
             None => return Err(RavenError::InvalidDSN),
             Some(cap) => cap
@@ -27,7 +27,7 @@ impl DSN {
 
         let protocol = From::from(captures.name("protocol").unwrap());
         let host = From::from(captures.name("host").unwrap());
-        let path = From::from(captures.name("path").unwrap());
+        let path = From::from(captures.name("path").unwrap_or(""));
         let project_id = From::from(captures.name("project_id").unwrap());
         let endpoint = format!("{}://{}/{}api/{}/store/", protocol, host, path, project_id);
         let dsn = DSN {
@@ -66,6 +66,15 @@ fn valid_dsn() {
     assert_eq!(s, dsn.to_string());
     assert_eq!("https://example.com/sentry/long/path/api/project-id/store/", dsn.endpoint())
 }
+
+#[test]
+fn empty_path() {
+    let s = "https://b70a31b3510c4cf793964a185cfe1fd0:b7d80b520139450f903720eb7991bf3d@example.com/project-id";
+    let dsn = DSN::from_string(s).unwrap().unwrap();
+    assert_eq!(s, dsn.to_string());
+    assert_eq!("https://example.com/api/project-id/store/", dsn.endpoint())
+}
+
 
 #[test]
 fn invalid_dsn() {
