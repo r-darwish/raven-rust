@@ -2,6 +2,7 @@ extern crate regex;
 extern crate time;
 extern crate uuid;
 extern crate rustc_serialize;
+extern crate hyper;
 
 const CLIENT_STRING: &'static str = "raven-rust/0.1";
 

@@ -1,5 +1,5 @@
 [package]
-name = "raven-rust"
+name = "raven"
 version = "0.1.0"
 authors = ["Roey Darwish Dror <roeyd@infinidat.com>"]
 
@@ -8,3 +8,6 @@ regex = "*"
 time = "*"
 uuid = "*"
 rustc-serialize = "*"
+
+[dependencies.hyper]
+git = "https://github.com/hyperium/hyper.git"

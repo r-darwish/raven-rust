@@ -1,5 +1,5 @@
 use std::result::Result;
-use rustc_serialize::{Encodable, Encoder, json};
+use rustc_serialize::{Encodable, Encoder};
 use std::convert::From;
 use uuid::Uuid;
 use time::{now_utc,Tm};
@@ -10,7 +10,7 @@ enum Level {
     Error
 }
 
-struct Event {
+pub struct Event {
     event_id: String,
     message: String,
     timestamp: Tm,
@@ -42,7 +42,7 @@ impl Event {
     }
 }
 
-fn get_header(dsn: &DSN) -> String {
+pub fn get_sentry_header(dsn: &DSN) -> String {
     format!(
         "Sentry sentry_version=5, sentry_timestamp={}, sentry_key={}, sentry_client={}, sentry_secret={}",
         now_utc().to_timespec().sec,
@@ -53,6 +53,8 @@ fn get_header(dsn: &DSN) -> String {
 
 #[test]
 fn json_encode() {
+    use rustc_serialize::json;
+
     let event = Event::new("Testing one two three");
     assert!(json::encode(&event).is_ok());
 }

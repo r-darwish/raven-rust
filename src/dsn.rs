@@ -87,5 +87,9 @@ fn empty_path() {
 #[test]
 fn invalid_dsn() {
     let s = "https://publicsecret@example.com/sentry/long/path/project-id";
-    assert_eq!(RavenError::InvalidDSN, DSN::from_string(s).unwrap_err());
+    let err = DSN::from_string(s).unwrap_err();
+    match err {
+        RavenError::InvalidDSN => (),
+        _ => panic!(format!("Unexpected error: {}", err))
+    }
 }
