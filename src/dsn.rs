@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::convert::From;
+use super::error::{RavenError, RavenResult};
 
 #[derive(PartialEq, Debug)]
 pub struct DSN {
@@ -12,10 +13,10 @@ pub struct DSN {
 }
 
 impl DSN {
-    pub fn from_string(url: &str) -> Option<DSN> {
+    pub fn from_string(url: &str) -> RavenResult<DSN> {
         let regex = Regex::new(r"^(?P<protocol>.*?)://(?P<public_key>.*?):(?P<secret_key>.*?)@(?P<host>.*?)/(?P<path>.*/)(?P<project_id>.*)$").unwrap();
         let captures = match regex.captures(url) {
-            None => return None,
+            None => return Err(RavenError::InvalidDSN),
             Some(cap) => cap
         };
 
@@ -28,7 +29,7 @@ impl DSN {
             project_id: From::from(captures.name("project_id").unwrap()),
         };
 
-        Some(dsn)
+        Ok(dsn)
     }
 }
 
@@ -47,5 +48,5 @@ fn valid_dsn() {
 #[test]
 fn invalid_dsn() {
     let s = "https://publicsecret@example.com/sentry/long/path/project-id";
-    assert_eq!(None, DSN::from_string(s));
+    assert_eq!(RavenError::InvalidDSN, DSN::from_string(s).unwrap_err());
 }
