@@ -1,0 +1,7 @@
+[package]
+name = "raven-rust"
+version = "0.0.1"
+authors = ["Roey Darwish Dror <roeyd@infinidat.com>"]
+
+[dependencies]
+regex = "*"
