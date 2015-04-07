@@ -15,6 +15,7 @@ pub struct Event<'a> {
     timestamp: Tm,
     level: Level,
     tags: Vec<(&'a str, &'a str)>,
+    server_name: Option<&'a str>
 }
 
 impl<'a> Encodable for Event<'a> {
@@ -37,19 +38,24 @@ impl<'a> Encodable for Event<'a> {
                 }));
                 Ok(())
             }));
+            try!(e.emit_struct_field("server_name", 5, |e| match self.server_name {
+                Some(name) => name,
+                _ => ""
+            }.encode(e)));
             Ok(())
         })
     }
 }
 
 impl<'a> Event<'a> {
-    pub fn new(message: &'a str, tags: &[(&'a str, &'a str)]) -> Event<'a> {
+    pub fn new(message: &'a str, tags: &[(&'a str, &'a str)], server_name: Option<&'a str>) -> Event<'a> {
         Event {
             event_id: Uuid::new_v4().to_simple_string(),
             message: message,
             timestamp: now_utc(),
             level: Level::Error,
-            tags: tags.iter().cloned().collect() }
+            tags: tags.iter().cloned().collect(),
+            server_name: server_name }
     }
 }
 
@@ -66,6 +72,6 @@ pub fn get_sentry_header(dsn: &DSN) -> String {
 fn json_encode() {
     use rustc_serialize::json;
 
-    let event = Event::new("Testing one two three", &[("version", "stable")]);
+    let event = Event::new("Testing one two three", &[("version", "stable")], None);
     assert!(json::encode(&event).is_ok());
 }

@@ -3,12 +3,15 @@ use std::fmt::{Formatter, Result};
 use super::dsn::DSN;
 use super::error::{RavenResult, RavenError};
 use super::protocol::{get_sentry_header, Event};
+use super::hostname::get_hostname;
 use rustc_serialize::json;
 use hyper;
 use hyper::status::StatusCode;
 
+#[derive(Debug)]
 pub struct Client {
-    dsn: Option<DSN>
+    dsn: Option<DSN>,
+    server_name: Option<String>
 }
 
 #[derive(Clone, Debug)]
@@ -29,7 +32,7 @@ impl hyper::header::HeaderFormat for SentryHeader {
 
 impl Client {
     pub fn new(dsn: Option<DSN>) -> Client {
-        Client {dsn: dsn}
+        Client {dsn: dsn, server_name: get_hostname()}
     }
 
     pub fn from_string(s: &str) -> RavenResult<Client> {
@@ -44,7 +47,11 @@ impl Client {
             Some(ref dsn) => dsn
         };
 
-        let event = try!(json::encode(&Event::new(message, tags)));
+        let server_name: Option<&str> = match self.server_name {
+            None => None,
+            Some(ref s) => Some(s)
+        };
+        let event = try!(json::encode(&Event::new(message, tags, server_name)));
         let response = try!(client.post(dsn.endpoint())
             .header(SentryHeader { content: get_sentry_header(dsn) })
             .body(&event as &str)

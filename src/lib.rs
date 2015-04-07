@@ -1,3 +1,4 @@
+extern crate libc;
 extern crate regex;
 extern crate time;
 extern crate uuid;
@@ -10,6 +11,7 @@ mod dsn;
 mod client;
 mod error;
 mod protocol;
+mod hostname;
 
 pub use client::Client;
 pub use error::{RavenResult, RavenError};
