@@ -1,6 +1,5 @@
 use std::result::Result;
 use rustc_serialize::{Encodable, Encoder};
-use std::convert::From;
 use uuid::Uuid;
 use time::{now_utc,Tm};
 use super::dsn::DSN;
@@ -12,7 +11,7 @@ enum Level {
 
 pub struct Event<'a> {
     event_id: String,
-    message: String,
+    message: &'a str,
     timestamp: Tm,
     level: Level,
     tags: Vec<(&'a str, &'a str)>,
@@ -44,10 +43,10 @@ impl<'a> Encodable for Event<'a> {
 }
 
 impl<'a> Event<'a> {
-    pub fn new(message: &str, tags: &[(&'a str, &'a str)]) -> Event<'a> {
+    pub fn new(message: &'a str, tags: &[(&'a str, &'a str)]) -> Event<'a> {
         Event {
             event_id: Uuid::new_v4().to_simple_string(),
-            message: From::from(message),
+            message: message,
             timestamp: now_utc(),
             level: Level::Error,
             tags: tags.iter().cloned().collect() }
