@@ -26,8 +26,8 @@ impl Error for RavenError {
     fn description(&self) -> &str {
         match *self {
             RavenError::InvalidDSN => "Invalid DSN",
-            RavenError::EncoderError(ref err) => err.description(),
-            RavenError::HttpError(ref err) => err.description(),
+            RavenError::EncoderError(_) => "Encoder Error",
+            RavenError::HttpError(_) => "Http Error",
             RavenError::SentryError(_) => "Sentry Error"
         }
     }
@@ -44,7 +44,12 @@ impl Error for RavenError {
 
 impl fmt::Display for RavenError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        self.description().fmt(fmt)
+        match *self {
+            RavenError::InvalidDSN => fmt.write_str("Invalid DSN"),
+            RavenError::EncoderError(ref err) => fmt.write_fmt(format_args!("Encoding Error ({})", err)),
+            RavenError::HttpError(ref err) => fmt.write_fmt(format_args!("HTTP Error ({})", err)),
+            RavenError::SentryError(code) => fmt.write_fmt(format_args!("Sentry returned {}", code))
+        }
     }
 }
 

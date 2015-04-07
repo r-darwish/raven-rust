@@ -57,24 +57,7 @@ impl Client {
     }
 
     pub fn capture_error<F: Error>(&self, err: &F, tags: &[(&str, &str)]) -> RavenResult<()> {
-        self.capture_message(&chained_description(err), tags)
+        let message = format!("{:?}", err);
+        self.capture_message(&message, tags)
     }
-}
-
-fn chained_description<F: Error>(err: &F) -> String {
-    let mut current_error: &Error = err;
-    let mut description = String::new();
-
-    loop {
-        description.push_str(current_error.description());
-        match current_error.cause() {
-            None => break,
-            Some(cause) => {
-                description.push_str(": ");
-                current_error = cause;
-            }
-        };
-    }
-
-    return description;
 }
