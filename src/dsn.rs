@@ -2,7 +2,7 @@ use regex::Regex;
 use std::convert::From;
 use super::error::{RavenError, RavenResult};
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct DSN {
     protocol: String,
     public_key: String,

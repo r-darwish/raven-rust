@@ -8,7 +8,7 @@ use rustc_serialize::json;
 use hyper;
 use hyper::status::StatusCode;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Client {
     dsn: Option<DSN>,
     server_name: Option<String>
