@@ -37,14 +37,14 @@ impl Client {
         Ok(Client::new(dsn))
     }
 
-    pub fn capture_message(&self, message: &str) -> RavenResult<()> {
+    pub fn capture_message(&self, message: &str, tags: &[(&str, &str)]) -> RavenResult<()> {
         let mut client = hyper::Client::new();
         let dsn = match self.dsn {
             None => return Ok(()),
             Some(ref dsn) => dsn
         };
 
-        let event = try!(json::encode(&Event::new(message)));
+        let event = try!(json::encode(&Event::new(message, tags)));
         let response = try!(client.post(dsn.endpoint())
             .header(SentryHeader { content: get_sentry_header(dsn) })
             .body(&event as &str)
@@ -56,8 +56,8 @@ impl Client {
         Ok(())
     }
 
-    pub fn capture_error<F: Error>(&self, err: &F) -> RavenResult<()> {
-        self.capture_message(&chained_description(err))
+    pub fn capture_error<F: Error>(&self, err: &F, tags: &[(&str, &str)]) -> RavenResult<()> {
+        self.capture_message(&chained_description(err), tags)
     }
 }
 
