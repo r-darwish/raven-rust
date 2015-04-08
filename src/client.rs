@@ -64,7 +64,7 @@ impl Client {
     }
 
     pub fn capture_error<F: Error>(&self, err: &F, tags: &[(&str, &str)]) -> RavenResult<()> {
-        let message = format!("{:?}", err);
+        let message = format!("{}", err);
         self.capture_message(&message, tags)
     }
 }
