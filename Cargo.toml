@@ -1,7 +1,10 @@
 [package]
 name = "raven"
 version = "0.1.0"
-authors = ["Roey Darwish Dror <roeyd@infinidat.com>"]
+authors = ["Roey Darwish Dror <roey.ghost@gmail.com>"]
+license = "MIT"
+description = "Raven is a Rust client for Sentry (getsentry.com)"
+repository = "https://github.com/r-darwish/raven-rust"
 
 [dependencies]
 regex = "*"
