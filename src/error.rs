@@ -46,9 +46,9 @@ impl fmt::Display for RavenError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
             RavenError::InvalidDSN => fmt.write_str("Invalid DSN"),
-            RavenError::EncoderError(ref err) => fmt.write_fmt(format_args!("Encoding Error ({})", err)),
-            RavenError::HttpError(ref err) => fmt.write_fmt(format_args!("HTTP Error ({})", err)),
-            RavenError::SentryError(code) => fmt.write_fmt(format_args!("Sentry returned {}", code))
+            RavenError::EncoderError(ref err) => write!(fmt, "Encoding Error ({})", err),
+            RavenError::HttpError(ref err) => write!(fmt, "HTTP Error ({})", err),
+            RavenError::SentryError(code) => write!(fmt, "Sentry returned {}", code)
         }
     }
 }
