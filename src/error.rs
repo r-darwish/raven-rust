@@ -3,7 +3,7 @@ use std::error::Error;
 use std::convert::From;
 use std::result::Result;
 use rustc_serialize::json::EncoderError;
-use hyper::error::HttpError;
+use hyper::error::Error as HttpError;
 use hyper::status::StatusCode;
 
 #[derive(Debug)]
