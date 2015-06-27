@@ -21,7 +21,7 @@ struct SentryHeader {
 
 impl hyper::header::Header for SentryHeader {
     fn header_name() -> &'static str { "X-Sentry-Auth" }
-    fn parse_header(_: &[Vec<u8>]) -> Option<Self> { None }
+    fn parse_header(_: &[Vec<u8>]) -> hyper::error::Result<Self> { Ok(SentryHeader {content: String::new()}) }
 }
 
 impl hyper::header::HeaderFormat for SentryHeader {
@@ -41,7 +41,7 @@ impl Client {
     }
 
     pub fn capture_message(&self, message: &str, tags: &[(&str, &str)]) -> RavenResult<()> {
-        let mut client = hyper::Client::new();
+        let client = hyper::Client::new();
         let dsn = match self.dsn {
             None => return Ok(()),
             Some(ref dsn) => dsn
