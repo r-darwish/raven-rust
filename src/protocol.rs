@@ -32,10 +32,7 @@ pub fn encode<M, StrPairs, S1, S2>(message: M, tags: StrPairs, server_name: Opti
                 }));
                 Ok(())
             }));
-            try!(e.emit_struct_field("server_name", 5, |e| match server_name {
-                Some(name) => name,
-                _ => ""
-            }.encode(e)));
+            try!(e.emit_struct_field("server_name", 5, |e| server_name.unwrap_or("").encode(e)));
             Ok(())
         }));
     }
