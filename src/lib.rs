@@ -14,4 +14,6 @@ mod protocol;
 mod hostname;
 
 pub use client::Client;
+pub use dsn::DSN;
 pub use error::{RavenResult, RavenError};
+pub use hostname::get_hostname;
