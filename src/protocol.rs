@@ -1,62 +1,46 @@
+use std::borrow::Borrow;
 use std::result::Result;
+use rustc_serialize::json;
 use rustc_serialize::{Encodable, Encoder};
 use uuid::Uuid;
-use time::{now_utc,Tm};
+use time::now_utc;
 use super::dsn::DSN;
 use super::CLIENT_STRING;
 
-enum Level {
-    Error
-}
-
-pub struct Event<'a> {
-    event_id: String,
-    message: &'a str,
-    timestamp: Tm,
-    level: Level,
-    tags: Vec<(&'a str, &'a str)>,
-    server_name: Option<&'a str>
-}
-
-impl<'a> Encodable for Event<'a> {
-    fn encode<S: Encoder>(&self, encoder: &mut S) -> Result<(), S::Error> {
-        let time_str = format!("{}", self.timestamp.rfc3339());
-        encoder.emit_struct("Event", 5, |e| {
-            try!(e.emit_struct_field("event_id", 0, |e| self.event_id.encode(e)));
-            try!(e.emit_struct_field("message", 1, |e| self.message.encode(e)));
+pub fn encode<M, StrPairs, S1, S2>(message: M, tags: StrPairs, server_name: Option<&str>) -> Result<String, json::EncoderError>
+        where M: AsRef<str>,
+              StrPairs: IntoIterator,
+              StrPairs::Item: Borrow<(S1, S2)>,
+              S1: AsRef<str>,
+              S2: AsRef<str> {
+    let mut json = String::new();
+    {
+        let mut encoder = json::Encoder::new(&mut json);
+        let time_str = format!("{}", now_utc().rfc3339());
+        try!(encoder.emit_struct("Event", 5, |e| {
+            try!(e.emit_struct_field("event_id", 0, |e| Uuid::new_v4().to_simple_string().encode(e)));
+            try!(e.emit_struct_field("message", 1, |e| message.as_ref().encode(e)));
             try!(e.emit_struct_field("timestamp", 2, |e| time_str.encode(e)));
-            try!(e.emit_struct_field("level", 3, |e| match self.level {
-                Level::Error => "error",
-            }.encode(e)));
+            try!(e.emit_struct_field("level", 3, |e| "error".encode(e)));
             try!(e.emit_struct_field("tags", 4, |e| {
                 try!(e.emit_struct("tags", 1, |e| {
-                    for tag in self.tags.iter().enumerate() {
-                        let (index, &(key, value)) = tag;
-                        try!(e.emit_struct_field(key, index, |e| value.encode(e)));
+                    for (index, pair) in tags.into_iter().enumerate() {
+                        let &(ref key, ref value) = pair.borrow();
+                        try!(e.emit_struct_field(key.as_ref(), index, |e| value.as_ref().encode(e)));
                     }
                     Ok(())
                 }));
                 Ok(())
             }));
-            try!(e.emit_struct_field("server_name", 5, |e| match self.server_name {
+            try!(e.emit_struct_field("server_name", 5, |e| match server_name {
                 Some(name) => name,
                 _ => ""
             }.encode(e)));
             Ok(())
-        })
+        }));
     }
-}
 
-impl<'a> Event<'a> {
-    pub fn new(message: &'a str, tags: &[(&'a str, &'a str)], server_name: Option<&'a str>) -> Event<'a> {
-        Event {
-            event_id: Uuid::new_v4().to_simple_string(),
-            message: message,
-            timestamp: now_utc(),
-            level: Level::Error,
-            tags: tags.iter().cloned().collect(),
-            server_name: server_name }
-    }
+    Ok(json)
 }
 
 pub fn get_sentry_header(dsn: &DSN) -> String {
@@ -70,8 +54,5 @@ pub fn get_sentry_header(dsn: &DSN) -> String {
 
 #[test]
 fn json_encode() {
-    use rustc_serialize::json;
-
-    let event = Event::new("Testing one two three", &[("version", "stable")], None);
-    assert!(json::encode(&event).is_ok());
+    assert!(encode("Testing one two three", &[("version", "stable")], None).is_ok());
 }

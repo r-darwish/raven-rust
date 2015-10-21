@@ -11,6 +11,6 @@ fn main() {
         Ok(_) => panic!("This should not have happened"),
         Err(err) => err
     };
-    client.capture_error(&err, &[("version", "develop"), ("os", "Linux")]).unwrap();
+    client.capture_error(&err, [("version", "develop"), ("os", "Linux")].iter()).unwrap();
     println!("Success. Check Sentry for your error");
 }

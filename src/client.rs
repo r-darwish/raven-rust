@@ -1,9 +1,9 @@
+use std::borrow::Borrow;
 use std::error::Error;
 use std::fmt::{Formatter, Result};
 use super::dsn::DSN;
 use super::error::{RavenResult, RavenError};
-use super::protocol::{get_sentry_header, Event};
-use rustc_serialize::json;
+use super::protocol::{get_sentry_header, encode};
 use hyper;
 use hyper::status::StatusCode;
 
@@ -34,7 +34,12 @@ impl Client {
         Client {dsn: dsn, server_name: server_name}
     }
 
-    pub fn capture_message(&self, message: &str, tags: &[(&str, &str)]) -> RavenResult<()> {
+    pub fn capture_message<M, StrPairs, S1, S2>(&self, message: M, tags: StrPairs) -> RavenResult<()>
+            where M: AsRef<str>,
+            StrPairs: IntoIterator,
+            StrPairs::Item: Borrow<(S1, S2)>,
+            S1: AsRef<str>,
+            S2: AsRef<str> {
         let client = hyper::Client::new();
         let dsn = match self.dsn {
             None => return Ok(()),
@@ -45,7 +50,8 @@ impl Client {
             None => None,
             Some(ref s) => Some(s)
         };
-        let event = try!(json::encode(&Event::new(message, tags, server_name)));
+
+        let event = try!(encode(message.as_ref(), tags.into_iter(), server_name));
         let response = try!(client.post(dsn.endpoint())
             .header(SentryHeader { content: get_sentry_header(dsn) })
             .body(&event as &str)
@@ -57,7 +63,12 @@ impl Client {
         Ok(())
     }
 
-    pub fn capture_error<F: Error>(&self, err: &F, tags: &[(&str, &str)]) -> RavenResult<()> {
+    pub fn capture_error<F, StrPairs, S1, S2>(&self, err: &F, tags: StrPairs) -> RavenResult<()>
+            where F: Error,
+            StrPairs: IntoIterator,
+            StrPairs::Item: Borrow<(S1, S2)>,
+            S1: AsRef<str>,
+            S2: AsRef<str> {
         let message = format!("{}", err);
         self.capture_message(&message, tags)
     }
