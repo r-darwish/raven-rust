@@ -36,22 +36,24 @@ impl Client {
 
     pub fn capture_message<M, StrPairs, S1, S2>(&self, message: M, tags: StrPairs) -> RavenResult<()>
             where M: AsRef<str>,
-            StrPairs: IntoIterator,
-            StrPairs::Item: Borrow<(S1, S2)>,
-            S1: AsRef<str>,
-            S2: AsRef<str> {
-        let client = hyper::Client::new();
+                  StrPairs: IntoIterator,
+                  StrPairs::Item: Borrow<(S1, S2)>,
+                  S1: AsRef<str>,
+                  S2: AsRef<str> {
+
         let dsn = match self.dsn {
             None => return Ok(()),
             Some(ref dsn) => dsn
         };
 
-        let server_name: Option<&str> = match self.server_name {
-            None => None,
-            Some(ref s) => Some(s)
-        };
+        let client = hyper::Client::new();
 
-        let event = try!(encode(message.as_ref(), tags.into_iter(), server_name));
+        let event = try!(encode(
+            message.as_ref(),
+            tags.into_iter(),
+            self.server_name.as_ref().map(|s| &s[..])
+        ));
+
         let response = try!(client.post(dsn.endpoint())
             .header(SentryHeader { content: get_sentry_header(dsn) })
             .body(&event as &str)
@@ -65,10 +67,10 @@ impl Client {
 
     pub fn capture_error<F, StrPairs, S1, S2>(&self, err: &F, tags: StrPairs) -> RavenResult<()>
             where F: Error,
-            StrPairs: IntoIterator,
-            StrPairs::Item: Borrow<(S1, S2)>,
-            S1: AsRef<str>,
-            S2: AsRef<str> {
+                  StrPairs: IntoIterator,
+                  StrPairs::Item: Borrow<(S1, S2)>,
+                  S1: AsRef<str>,
+                  S2: AsRef<str> {
         let message = format!("{}", err);
         self.capture_message(&message, tags)
     }
