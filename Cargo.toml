@@ -9,7 +9,7 @@ repository = "https://github.com/r-darwish/raven-rust"
 [dependencies]
 regex = "*"
 time = "*"
-uuid = "*"
+uuid = { version = "0.2", features = ["v4"] }
 rustc-serialize = "*"
 libc = "*"
 hyper = "*"

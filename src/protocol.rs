@@ -50,7 +50,7 @@ impl<'a> Encodable for Event<'a> {
 impl<'a> Event<'a> {
     pub fn new(message: &'a str, tags: &[(&'a str, &'a str)], server_name: Option<&'a str>) -> Event<'a> {
         Event {
-            event_id: Uuid::new_v4().to_simple_string(),
+            event_id: Uuid::new_v4().simple().to_string(),
             message: message,
             timestamp: now_utc(),
             level: Level::Error,
